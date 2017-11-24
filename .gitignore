@@ -1,0 +1,8 @@
+*.swm
+*.swp
+*.swo
+*.swn
+target/
+**/*.rs.bk
+.idea
+/venv
