@@ -13,7 +13,9 @@ extern crate futures;
 extern crate tokio_core;
 extern crate hyper_tls;
 extern crate rustc_serialize;
-
+#[macro_use]
+extern crate log;
+extern crate fern;
 
 mod db_worker;
 mod coinigy_hist;

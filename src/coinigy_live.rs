@@ -1,4 +1,3 @@
-use std::io::{self, Write};
 use futures::{Future, Stream};
 use hyper::Client;
 use tokio_core::reactor::Core;
@@ -12,61 +11,119 @@ use std::result;
 use serde_json;
 use types;
 
+use std::{thread, time};
+
 //Static values
 static APIKEY: &str = "62fd3c20d21923e7caae5b0bab5771b5";
 static APISEC: &str = "5449d3ebbe1fe9dce4a941641c9d1e0e";
 
 //Needs to be inspected once
 pub fn list_markets() -> () {
+    before_request();
     //Web page to ping for
     let json: &str = r#"{}"#;
     let uri: hyper::Uri = "https://api.coinigy.com/api/v1/markets".parse().unwrap();
     let res = create_request(json, uri);
-    print!("{:?}", res);
+    match res {
+        Some(json) => {
+
+            let tmp: Vec<Vec<Json>> = json["data"].clone().into_array().into_iter()
+                .collect::<Vec<_>>();
+            print!("{:?}", tmp);
+            print!("{:?}", tmp.len());
+            /*/          let out = json["data"].clone().into_array().into_iter().map(|x| {
+                          types::SingleMarket {
+                              exch_id: x["exch_id"].parse::<i32>().unwrap(),
+                              exch_name: x["exch_name"],
+                              exch_code: x["exch_code"],
+                              mkt_id: x["mkt_id"].parse::<i32>().unwrap(),
+                              mkt_name: x["mkt_name"],
+                              exchmkt_id: x["exchmkt_id"].parse::<i32>().unwrap(),
+                          }
+                      });
+                      print!("{:?}", out)*/
+        }
+        None => {
+            warn!("Something went wrong with list_markets()! See logs for more!")
+        }
+    }
 }
 
 pub fn list_exchanges() -> () {
+    before_request();
     //Web page to ping for
     let json: &str = r#"{}"#;
     let uri: hyper::Uri = "https://api.coinigy.com/api/v1/exchanges".parse().unwrap();
     let res = create_request(json, uri);
-    print!("{:?}", res);
+    match res {
+        Some(json) => {
+            //print!("{:?}", json)
+        }
+        None => {
+            warn!("Something went wrong with list_exchanges()! See logs for \
+            more!")
+        }
+    }
 }
 
 pub fn get_order_types() -> () {
+    before_request();
     //Web page to ping for
     let json: &str = r#"{}"#;
     let uri: hyper::Uri = "https://api.coinigy.com/api/v1/orderTypes".parse().unwrap();
     let res = create_request(json, uri);
-    print!("{:?}", res);
+    match res {
+        Some(json) => {
+            //print!("{:?}", json)
+        }
+        None => {
+            warn!("Something went wrong with get_order_types()! See logs for \
+            more!")
+        }
+    }
 }
 
 
 //Needs to be called once
 pub fn get_auth_id() -> () {
+    before_request();
     //Web page to ping for
     let json: &str = r#"{}"#;
     let uri: hyper::Uri = "https://api.coinigy.com/api/v1/accounts".parse().unwrap();
     let res = create_request(json, uri);
-    print!("{:?}", res);
+    match res {
+        Some(json) => {
+            //print!("{:?}", json)
+        }
+        None => {
+            warn!("Something went wrong with get_auth_id()! See logs for more!")
+        }
+    }
 }
 
 pub fn list_orders() -> () {
+    before_request();
     //Web page to ping for
     let json: &str = r#"{}"#;
     let uri: hyper::Uri = "https://api.coinigy.com/api/v1/orders".parse().unwrap();
     let res = create_request(json, uri);
-    print!("{:?}", res);
+    match res {
+        Some(json) => {
+            //print!("{:?}", json)
+        }
+        None => {
+            warn!("Something went wrong with list_orders()! See logs for more!")
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
-
     //Needs to be inspected once
     #[test]
     fn test_list_markets() {
         use super::list_markets;
-        list_markets()
+        list_markets();
     }
 
     #[test]
@@ -95,7 +152,6 @@ mod tests {
         list_orders();
     }
 
-
     //Building blocks
     #[test]
     fn test_create_request() {
@@ -107,10 +163,14 @@ mod tests {
         let json: &str = r#"{}"#;
         let uri: hyper::Uri = "https://api.coinigy.com/api/v1/markets".parse().unwrap();
         let res = create_request(json, uri);
-        print!("{:?}", res);
+        println!("{:?}", res);
     }
 }
 
+fn before_request() {
+    let sleep_time = time::Duration::from_millis(500);
+    thread::sleep(sleep_time);
+}
 
 fn create_request(json: &str, uri: hyper::Uri) -> Option<Json> {
     //Preparatory statements
@@ -138,7 +198,6 @@ fn create_request(json: &str, uri: hyper::Uri) -> Option<Json> {
             let json: Json = Json::from_str(&tmp_string).unwrap(); //TODO: get rid of this unwrap!
             json
         })
-
     });
 
     match core.run(post) {
@@ -146,6 +205,8 @@ fn create_request(json: &str, uri: hyper::Uri) -> Option<Json> {
             Some(response)
         }
         Err(err) => {
+            //Log on failure!!!
+            debug!("Debug error");
             None
         }
     }
@@ -158,7 +219,6 @@ pub fn update_balance() -> () {} //Needs auth_id
 pub fn add_order() -> () {}  //Needs auth_id
 
 pub fn cancel_order() -> () {}  //Needs auth_id
-
 
 pub fn list_balances() -> () {}  //Needs auth_id
 
