@@ -195,6 +195,8 @@ fn create_request(json: &str, uri: hyper::Uri) -> Option<Json> {
         res.body().concat2().map(|body| {
             let val: Vec<u8> = body.to_vec();
             let tmp_string: String = String::from_utf8(val).unwrap(); //TODO: get rid of this unwrap
+            println!("{}", tmp_string);
+            panic!("Sveeeeeen");
             let json: Json = Json::from_str(&tmp_string).unwrap(); //TODO: get rid of this unwrap!
             json
         })
