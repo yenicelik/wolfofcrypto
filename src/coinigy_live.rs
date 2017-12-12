@@ -9,6 +9,9 @@ use rustc_serialize::json::Json;
 
 use std::result;
 use serde_json;
+use serde_json::Value;
+use serde_json::value::from_value;
+
 use types;
 
 use std::{thread, time};
@@ -167,28 +170,28 @@ mod tests {
     }
 }
 
+
+/** Request Functions **/
+
+
 fn before_request() {
     let sleep_time = time::Duration::from_millis(500);
     thread::sleep(sleep_time);
 }
 
-fn create_request(json: &str, uri: hyper::Uri) -> Option<Json> {
+fn create_request<ResType, TypeTemp, Type>(json: &str, uri: hyper::Uri) -> Option<Type> {
     //Preparatory statements
     let mut core: Core = Core::new().unwrap();
     let handle = core.handle();
     let client = Client::configure()
         .connector(HttpsConnector::new(4, &handle).unwrap())
         .build(&handle);
-    //    let client = Client::new(&core.handle());
 
     //Add body and json
     let mut req = Request::new(Method::Post, uri);
     req.headers_mut().set(ContentType::json());
-
     req.headers_mut().append_raw("X-API-KEY", APIKEY.to_owned());
     req.headers_mut().append_raw("X-API-SECRET", APISEC.to_owned());
-
-
     req.set_body(json.to_owned());
 
     let post = client.request(req).and_then(|res| {
@@ -196,9 +199,12 @@ fn create_request(json: &str, uri: hyper::Uri) -> Option<Json> {
             let val: Vec<u8> = body.to_vec();
             let tmp_string: String = String::from_utf8(val).unwrap(); //TODO: get rid of this unwrap
             println!("{}", tmp_string);
-            panic!("Sveeeeeen");
-            let json: Json = Json::from_str(&tmp_string).unwrap(); //TODO: get rid of this unwrap!
-            json
+            let json: Value = Json::from_str(&tmp_string).unwrap(); //TODO: get rid of this unwrap!
+            let data = json.get("data").unwrap();
+            let mut resp: ResType = from_value(data.clone()).unwrap();
+            let x: Type = types::convert(resp.0);
+            println!("{:?}", x);
+            x
         })
     });
 
@@ -213,15 +219,3 @@ fn create_request(json: &str, uri: hyper::Uri) -> Option<Json> {
         }
     }
 }
-
-/*
-//Needs to be called frequently
-pub fn update_balance() -> () {} //Needs auth_id
-
-pub fn add_order() -> () {}  //Needs auth_id
-
-pub fn cancel_order() -> () {}  //Needs auth_id
-
-pub fn list_balances() -> () {}  //Needs auth_id
-
-*/

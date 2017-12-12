@@ -1,3 +1,7 @@
+fn convert<A, B>(val: Vec<B>) -> Vec<A> where B: Into<A>, B: Clone {
+    val.iter().map(|x| x.clone().into()).collect()
+}
+
 //RESPONSE types
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Response<T> {
