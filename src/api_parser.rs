@@ -18,6 +18,16 @@ struct DataElement {
     exchmkt_id: u32
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+struct DataElementTemp {
+    exch_id: String,
+    exch_name: String,
+    exch_code: String,
+    mkt_id: String,
+    mkt_name: String,
+    exchmkt_id: String
+}
+
 impl From<DataElementTemp> for DataElement {
     fn from(val: DataElementTemp) -> Self {
         DataElement {
@@ -29,16 +39,6 @@ impl From<DataElementTemp> for DataElement {
             exchmkt_id: val.exchmkt_id.parse().unwrap(),
         }
     }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct DataElementTemp {
-    exch_id: String,
-    exch_name: String,
-    exch_code: String,
-    mkt_id: String,
-    mkt_name: String,
-    exchmkt_id: String
 }
 
 
