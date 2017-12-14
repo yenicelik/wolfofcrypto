@@ -82,7 +82,7 @@ impl From<SingleExchangeTemp> for SingleExchange {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct ResponseExchange(Vec<SingleExchangeTemp>);
+pub struct ResponseExchange(pub Vec<SingleExchangeTemp>);
 
 
 /*****************/
@@ -112,27 +112,13 @@ impl From<SingleOrderTypeTemp> for SingleOrderType {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct ResponseOrderType(Vec<SingleOrderTypeTemp>);
+pub struct ResponseOrderType(pub Vec<SingleOrderTypeTemp>);
 
 /*****************/
 /** ACCOUNTS **/
 /*****************/
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SingleAccount {
-    pub auth_id: i32,
-    pub auth_key: String,
-    pub auth_optional1: String,
-    pub auth_nickname: String,
-    pub exch_name: String,
-    pub auth_secret: String,
-    pub auth_updated: String,
-    pub auth_active: i32,
-    pub auth_trade: i32,
-    pub exch_trade_enabled: i32,
-    pub exch_id: i32
-}
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct SingleAccountTemp {
     pub auth_id: String,
     pub auth_key: String,
     pub auth_optional1: String,
@@ -145,27 +131,51 @@ pub struct SingleAccountTemp {
     pub exch_trade_enabled: String,
     pub exch_id: String
 }
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SingleAccountTemp {
+    pub auth_id: String,
+    pub auth_key: String,
+    pub auth_optional1: Option<String>,
+    pub auth_nickname: String,
+    pub exch_name: String,
+    pub auth_secret: String,
+    pub auth_updated: Option<String>,
+    pub auth_active: String,
+    pub auth_trade: String,
+    pub exch_trade_enabled: Option<String>,
+    pub exch_id: String
+}
+
 
 impl From<SingleAccountTemp> for SingleAccount {
     fn from(val: SingleAccountTemp) -> Self {
         SingleAccount {
-            auth_id: val.auth_id.parse().unwrap(),
+            auth_id: val.auth_id,
             auth_key: val.auth_key,
-            auth_optional1: val.auth_optional1,
+            auth_optional1: match val.auth_optional1 {
+                Some(x) => x,
+                None => " ".to_owned()
+            },
             auth_nickname: val.auth_nickname,
             exch_name: val.exch_name,
             auth_secret: val.auth_secret,
-            auth_updated: val.auth_updated,
-            auth_active: val.auth_active.parse().unwrap(),
-            auth_trade: val.auth_trade.parse().unwrap(),
-            exch_trade_enabled: val.exch_trade_enabled.parse().unwrap(),
-            exch_id: val.exch_id.parse().unwrap(),
+            auth_updated: match val.auth_updated {
+                Some(x) => x,
+                None => "2000-01-01 12:00:00".to_owned()
+            },
+            auth_active: val.auth_active,
+            auth_trade: val.auth_trade,
+            exch_trade_enabled: match val.exch_trade_enabled {
+                Some(x) => x,
+                None => "0".to_owned()
+            },
+            exch_id: val.exch_id,
         }
     }
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct ResponseAccount(Vec<SingleAccount>);
+pub struct ResponseAccount(pub Vec<SingleAccount>);
 
 /*****************/
 /**   ORDERS   **/
@@ -239,4 +249,4 @@ impl From<SingleOrderTemp> for SingleOrder {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct ResponseOrder(Vec<SingleOrderTemp>);
+pub struct ResponseOrder(pub Vec<SingleOrderTemp>);
