@@ -158,6 +158,49 @@ pub fn list_orders() -> Result<Vec<types::SingleOrder>, Error> {
 
 }
 
+/** Functions that rely on auth_id **/
+//Needs to be called frequently
+pub fn refresh_balance(inp_auth_id: String) -> Result<Vec<types::SingleRefreshBalance>, Error> {
+    //Requesting
+    let request_body: &str = &json!({
+        "auth_id": inp_auth_id
+    }).to_string().to_owned();
+
+    let uri: hyper::Uri = "https://api.coinigy.com/api/v1//refreshBalance".parse().unwrap();
+
+    let value: Value = create_post(request_body, uri)?;
+    println!("{:?}", value);
+    let data = match value.get("data") {
+        Some(val) => Ok(val),
+        None => Err(format_err!("data was not found within the struct!"))
+    }?;
+    let resp: types::ResponseRefreshBalance = serde_json::from_value(data.clone())?;
+    let x: Vec<types::SingleRefreshBalance> = types::convert(resp.0);
+
+    Ok(x)
+}
+
+
+pub fn list_balances(inp_auth_id: String) -> Result<Vec<types::SingleBalance>, Error> {
+    //Requesting
+    let request_body: &str = &json!({
+        "show_nils": 0,
+        "auth_id": inp_auth_id
+    }).to_string().to_owned();
+
+    let uri: hyper::Uri = "https://api.coinigy.com/api/v1//balances".parse().unwrap();
+
+    let value: Value = create_post(request_body, uri)?;
+    let data = match value.get("data") {
+        Some(val) => Ok(val),
+        None => Err(format_err!("data was not found within the struct!"))
+    }?;
+    let resp: types::ResponseBalance = serde_json::from_value(data.clone())?;
+    let x: Vec<types::SingleBalance> = types::convert(resp.0);
+
+    Ok(x)
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -221,5 +264,83 @@ mod tests {
         };
     }
 
+    #[test]
+    fn test_list_balances() {
+        // TODO: Run again when balances are on!
+        use super::list_balances;
+        use super::get_auth_id;
 
+        let x = match get_auth_id() {
+            Ok(x) => x,
+            Err(err) => panic!("Already failed while getting id! {:?}", err)
+        };
+
+        println!("Auth id is: {:?}", (&x[0]).auth_id.to_string());
+
+        match list_balances((&*(&x[0]).auth_id).to_owned()) {
+            Ok(_) => {},
+            Err(err) => panic!("{:?}", err)
+        };
+    }
+
+    #[test]
+    fn test_refresh_balances() {
+        // TODO: Run again when balances are on!
+        use super::refresh_balance;
+        use super::get_auth_id;
+
+        let x = match get_auth_id() {
+            Ok(x) => x,
+            Err(err) => panic!("Already failed while getting id! {:?}", err)
+        };
+
+        println!("Auth id is: {:?}", (&x[0]).auth_id.to_string());
+
+        match refresh_balance((&*(&x[0]).auth_id).to_owned()) {
+            Ok(_) => {},
+            Err(err) => panic!("{:?}", err)
+        };
+    }
 }
+
+
+/* Soon to be implemented (when the algorithm is ready) */
+/*
+
+pub fn add_order(
+    inp_auth_id: String,
+    inp_exch_id: i32,
+    inp_mkt_id: i32,
+    order_type_id: i32,
+    price_type_id: i32,
+    inp_limit_price: i32,
+    inp_order_quantity: f32) -> () {
+
+    //Requesting
+    let request_body: &str = r#"{
+            "auth_id": inp_auth_id,
+            "exch_id": inp_exch_id,
+            "mkt_id": inp_mkt_id,
+            "order_type_id": order_type_id,
+            "price_type_id": price_type_id,
+            "limit_price": inp_limit_price,
+            "order_quantity": inp_order_quantity
+        }"#;
+    let uri: hyper::Uri = "https://api.coinigy.com/api/v1//addOrder".parse().unwrap();
+
+    //Watch out!!! This will fill a real order!
+    return;
+
+    let value: Value = create_post(request_body, uri)?;
+    let data = match value.get("data") {
+        Some(val) => Ok(val),
+        None => Err(format_err!("data was not found within the struct!"))
+    }?;
+    let resp: types::ResponseBalance = serde_json::from_value(data.clone())?;
+    let x: Vec<types::SingleBalance> = types::convert(resp.0);
+
+    println!("{:?}", x);
+
+    Ok(x)
+}
+*/

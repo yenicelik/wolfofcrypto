@@ -250,3 +250,80 @@ impl From<SingleOrderTemp> for SingleOrder {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct ResponseOrder(pub Vec<SingleOrderTemp>);
+
+
+/*****************/
+/**   BALANCES   **/
+/*****************/
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SingleBalance {
+    pub balance_curr_code: String,
+    pub balance_amount_avail: f32,
+    pub balance_amount_held: f32,
+    pub balance_amount_total: f32,
+    pub btc_balance: f32,
+    pub last_price: f32
+}
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SingleBalanceTemp {
+    pub balance_curr_code: String,
+    pub balance_amount_avail: String,
+    pub balance_amount_held: String,
+    pub balance_amount_total: String,
+    pub btc_balance: String,
+    pub last_price: String
+}
+
+impl From<SingleBalanceTemp> for SingleBalance {
+    fn from(val: SingleBalanceTemp) -> Self {
+        SingleBalance {
+            balance_curr_code: val.balance_curr_code,
+            balance_amount_avail: val.balance_amount_avail.parse().unwrap(),
+            balance_amount_held: val.balance_amount_held.parse().unwrap(),
+            balance_amount_total: val.balance_amount_total.parse().unwrap(),
+            btc_balance: val.btc_balance.parse().unwrap(),
+            last_price: val.last_price.parse().unwrap()
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct ResponseBalance(pub Vec<SingleBalance>);
+
+/*****************/
+/**   REFRESH BALANCE   **/
+/*****************/
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SingleRefreshBalance {
+    pub balance_curr_code: String,
+    pub balance_amount_avail: f32,
+    pub balance_amount_held: String,
+    pub balance_amount_total: f32,
+    pub btc_balance: f32,
+    pub last_price: f32
+}
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SingleRefreshBalanceTemp {
+    pub balance_curr_code: String,
+    pub balance_amount_avail: String,
+    pub balance_amount_held: String,
+    pub balance_amount_total: String,
+    pub btc_balance: String,
+    pub last_price: String
+}
+
+impl From<SingleRefreshBalanceTemp> for SingleRefreshBalance {
+    fn from(val: SingleRefreshBalanceTemp) -> Self {
+        SingleRefreshBalance {
+            balance_curr_code: val.balance_curr_code,
+            balance_amount_avail: val.balance_amount_avail.parse().unwrap(),
+            balance_amount_held: val.balance_amount_held,
+            balance_amount_total: val.balance_amount_total.parse().unwrap(),
+            btc_balance: val.btc_balance.parse().unwrap(),
+            last_price: val.last_price.parse().unwrap()
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct ResponseRefreshBalance(pub Vec<SingleRefreshBalance>);

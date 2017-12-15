@@ -1,7 +1,14 @@
+#![recursion_limit="4096"]
+#[macro_use]
 extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
 extern crate diesel;
+#[macro_use]
+extern crate diesel_codegen;
+#[macro_use]
+extern crate diesel_infer_schema;
 extern crate r2d2;
 extern crate r2d2_diesel;
 extern crate iron;
@@ -15,17 +22,13 @@ extern crate fern;
 #[macro_use]
 extern crate failure;
 
-
 mod db_worker;
 mod coinigy_hist;
 mod coinigy_live;
 mod types;
 mod server;
+mod database;
 
 fn main() {
-
-    println!("Hello, world!");
-
     server::serve();
-
 }
