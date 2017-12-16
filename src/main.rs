@@ -1,3 +1,4 @@
+#![feature(plugin, custom_derive, custom_attribute)]
 #![recursion_limit="4096"]
 #[macro_use]
 extern crate serde_json;
@@ -17,6 +18,7 @@ extern crate hyper_tls;
 extern crate futures;
 extern crate tokio_core;
 extern crate rustc_serialize;
+#[macro_use]
 extern crate log;
 extern crate fern;
 #[macro_use]
