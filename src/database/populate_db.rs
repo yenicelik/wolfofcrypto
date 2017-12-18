@@ -15,6 +15,17 @@ use tokio_core::reactor::Core;
 use diesel;
 use std::i32;
 
+use diesel::associations::HasTable;
+
+use std::time::{SystemTime, UNIX_EPOCH};
+
+use database;
+
+const BTC_TUPLE: (
+        database::types::__diesel_infer_schema::infer_bitcoin::bitcoin::table,
+        database::types::__diesel_infer_schema::infer_bitcoin::bitcoin::columns::time
+    ) = (types::bitcoin::table, types::bitcoin::time);
+
 const RATE_LIMIT_CENTISECONDS: u64 = 10;
 // https://graphs.coinmarketcap.com/currencies/bitcoin/1367131641000/1367218041000/
 const BTC_BASE: (&str, i64, i64) = ("bitcoin", 1367131641000, 1367218041000 - 1367131641000);
@@ -23,6 +34,66 @@ const ETH_BASE: (&str, i64, i64) = ("ethereum", 1438958970000, 1439500431288 - 1
 // https://graphs.coinmarketcap.com/currencies/litecoin/1367174842000/1367261242000/
 const LTC_BASE: (&str, i64, i64) = ("litecoin", 1367174842000, 1367261242000 - 1367174842000);
 
+/*
+pub trait TickerBTCBTCBTC {
+    type Table;
+}
+
+struct Btc;
+
+impl TickerBTCBTCBTC for Btc {
+    type Table = types::bitc;
+}
+*/
+
+/*
+pub fn get_most_recent_entry<T>(conn: &SqliteConnection) -> () where T: TickerBTCBTCBTC {
+    T::Table;
+}
+*/
+
+/*
+let res = T::Table
+        .order(types::bitcoin::time.desc())
+        .limit(1)
+        .load::<types::BTCRecord>(&*conn);
+    match res {
+        Ok(x) => {
+            if x.len() > 0 {
+                Ok(x.get(0).unwrap().time)
+            } else {
+                Ok(0)
+            }
+        }
+        Err(err) => Err(format_err!("Something went wrong retrieving the most recently inserted \
+        bitcoin record! {:?}", err))curl https://sh.rustup.rs -sSf | sh
+
+    }
+*/
+
+pub struct BtcShit {
+    table: types::bitcoin::table;
+    time: types::bitcoin::time;
+}
+
+pub fn get_most_recent_entries(conn: &SqliteConnection,) -> Result<i32, Error> {
+
+    let res = T::table()
+        .order(T::time.desc())
+        .limit(1)
+        .load::<T>(&*conn);
+    match res {
+        Ok(x) => {
+            if x.len() > 0 {
+                Ok(x.get(0).unwrap().time)
+            } else {
+                Ok(0)
+            }
+        }
+        Err(err) => Err(format_err!("Something went wrong retrieving the most recently inserted \
+        bitcoin record! {:?}", err))
+    }
+}
 
 pub fn establish_connection() -> Result<SqliteConnection, Error> {
     match SqliteConnection::establish("/Users/davidal/documents/wolfofcrypto/src/database/sqlite_database.db") {
@@ -62,6 +133,8 @@ pub fn parse_values(value: Value) -> Result<(Vec<types::IntRecord>, Vec<types::F
 }
 
 pub fn get_most_recent_btc_entry(conn: &SqliteConnection) -> Result<i32, Error> {
+    //let a: () = types::bitcoin::table;
+    //let a: () = types::bitcoin::time;
     let res = types::bitcoin::table
         .order(types::bitcoin::time.desc())
         .limit(1)
@@ -120,7 +193,9 @@ pub fn insert_into_db(conn: &SqliteConnection, ins: (Vec<types::IntRecord>,
                                                      Vec<types::FloatRecord>,
                                                      Vec<types::FloatRecord>,
                                                      Vec<types::FloatRecord>), currency: &str) ->
-                      Result<(), Error> {
+                      Result<usize, Error> {
+    let mut out: usize = 0;
+
     for i in 0..(ins.1.len()) {
         // Check if there's anything funky with the vector and tuples
         if ins.0.get(i).unwrap().unixtime != ins.1.get(i).unwrap().unixtime ||
@@ -139,13 +214,15 @@ pub fn insert_into_db(conn: &SqliteConnection, ins: (Vec<types::IntRecord>,
                 vol_usd: ins.3.get(i).unwrap().floatfield
             };
 
-            let out = match diesel::insert_into(types::bitcoin::table)
+            out = match diesel::insert_into(types::bitcoin::table)
                 .values(&to_be_inserted)
                 .execute(&*conn) {
-                Ok(x) => Ok(x),
-                Err(err) => Err(format_err!("Something went wrong inserting btc! {:?}", err))
+                Ok(x) => x,
+                Err(err) => {
+                    warn!("Something went wrong inserting btc! {:?}", err);
+                    continue;
+                }
             };
-
         } else if currency == "ethereum" {
             let to_be_inserted = types::ETHRecord {
                 time: (ins.0.get(i).unwrap().unixtime / 1000) as i32,
@@ -155,13 +232,15 @@ pub fn insert_into_db(conn: &SqliteConnection, ins: (Vec<types::IntRecord>,
                 vol_usd: ins.3.get(i).unwrap().floatfield
             };
 
-            let out = match diesel::insert_into(types::ethereum::table)
+            out = match diesel::insert_into(types::ethereum::table)
                 .values(&to_be_inserted)
                 .execute(&*conn) {
-                Ok(x) => Ok(x),
-                Err(err) => Err(format_err!("Something went wrong inserting eth! {:?}", err))
+                Ok(x) => x,
+                Err(err) => {
+                    warn!("Something went wrong inserting eth! {:?}", err);
+                    continue;
+                }
             };
-
         } else if currency == "litecoin" {
             let to_be_inserted = types::LTCRecord {
                 time: (ins.0.get(i).unwrap().unixtime / 1000) as i32,
@@ -171,19 +250,21 @@ pub fn insert_into_db(conn: &SqliteConnection, ins: (Vec<types::IntRecord>,
                 vol_usd: ins.3.get(i).unwrap().floatfield
             };
 
-            let out = match diesel::insert_into(types::litecoin::table)
+            out = match diesel::insert_into(types::litecoin::table)
                 .values(&to_be_inserted)
                 .execute(&*conn) {
-                Ok(x) => Ok(x),
-                Err(err) => Err(format_err!("Something went wrong inserting ltc! {:?}", err))
+                Ok(x) => x,
+                Err(err) => {
+                    warn!("Something went wrong inserting ltc! {:?}", err);
+                    continue
+                }
             };
-
         } else {
             return Err(format_err!("Something went wrong! Name is not a table! {}", currency));
         }
     }
 
-    Ok(())
+    Ok(out)
 }
 
 pub fn send_request(currency: &str, start: i64, offset: i64) -> Result<Value, Error> {
@@ -223,7 +304,14 @@ pub fn send_request(currency: &str, start: i64, offset: i64) -> Result<Value, Er
 }
 
 
+// TODO: do this up until now
+// TODO: if stuck, just skip one offset
+// TODO: come back to skipped offsets (see difference between two pairwise dates)
+
 pub fn get_website_data() {
+    //Skipping functionality
+    let mut skip_counter = 0;
+
     let currencies = vec![BTC_BASE, ETH_BASE, LTC_BASE];
 
     let conn = match establish_connection() {
@@ -265,13 +353,21 @@ pub fn get_website_data() {
                 _ => panic!("Wrong currency pair!")
             }
 
+            //If all data is collected, skip to next coin
+            let start = SystemTime::now();
+            let since_the_epoch = start.duration_since(UNIX_EPOCH)
+                .expect("Time went backwards");
+
+            if recent_time + offset >= (since_the_epoch.as_secs() as i64) * 1000 {
+                break;
+            }
+
+            //Start from scratch if needed
             if index > recent_time {
                 recent_time = index;
             }
 
-            // Successful up until now
-
-            let res: serde_json::Value = match send_request(table_name, recent_time, offset) {
+            let res: serde_json::Value = match send_request(table_name, recent_time + skip_counter * offset, offset) {
                 Ok(x) => x,
                 Err(err) => {
                     println!("Something went wrong when sending the request!: {:?}", err);
@@ -279,8 +375,6 @@ pub fn get_website_data() {
                     continue;
                 }
             };
-
-            // Successful up until now
 
             let ins = match parse_values(res) {
                 Ok(x) => x,
@@ -291,18 +385,26 @@ pub fn get_website_data() {
                 }
             };
 
-            // Successful up until now
+            println!("Skip counter: {:?}", skip_counter);
 
-            match insert_into_db(&conn, ins, currency.0) {
-                Ok(_) => {}
+            panic!("Skipping once more!");
+
+            let updated_vals = match insert_into_db(&conn, ins, currency.0) {
+                Ok(x) => x,
                 Err(err) => {
+                    //
+                    println!("Something went wrong inserting the request to the database! {:?}", err);
                     warn!("Something went wrong inserting the request to the database! {:?}", err);
+                    skip_counter += 1;
                     continue;
                 }
             };
 
+            skip_counter = 0;
         }
     }
+
+    println!("Oleee, done for today!");
 }
 
 #[cfg(test)]

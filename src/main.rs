@@ -1,4 +1,3 @@
-#![feature(plugin, custom_derive, custom_attribute)]
 #![recursion_limit="4096"]
 #[macro_use]
 extern crate serde_json;
@@ -10,8 +9,6 @@ extern crate diesel;
 extern crate diesel_codegen;
 #[macro_use]
 extern crate diesel_infer_schema;
-extern crate r2d2;
-extern crate r2d2_diesel;
 extern crate iron;
 pub extern crate hyper;
 extern crate hyper_tls;
@@ -30,6 +27,7 @@ mod coinigy_live;
 mod types;
 mod server;
 mod database;
+mod historical;
 
 fn main() {
     server::serve();

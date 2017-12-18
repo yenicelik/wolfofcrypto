@@ -1,2 +1,2 @@
-mod populate_db;
+pub mod populate_db;
 mod types;
