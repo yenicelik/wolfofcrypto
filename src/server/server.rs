@@ -1,6 +1,20 @@
 use std::{thread, time};
 
+use rocket;
+
+use historical::historical_simulation;
+
+//use server::types;
+
 use coinigy_live as coinlive;
+
+//use rocket_contrib::Json;
+
+
+#[get("/")]
+fn hello() -> &'static str {
+    "Hello, world!"
+}
 
 pub fn serve() {
 
@@ -12,13 +26,15 @@ pub fn serve() {
         Err(err) => panic!("Already failed while getting id! {:?}", err)
     };
 
+    rocket::ignite().mount("/", routes![hello]).launch();
+
+
     println!("Using auth_id : {}", auth_id);
 
     // Ping and download data every few minutes
     loop {
         println!("Ping...");
         thread::sleep(sleep_interval);
-
     }
 
 }

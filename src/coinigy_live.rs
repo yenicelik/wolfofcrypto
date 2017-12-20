@@ -283,6 +283,7 @@ mod tests {
         };
     }
 
+    /*
     #[test]
     fn test_refresh_balances() {
         // TODO: Run again when balances are on!
@@ -301,6 +302,7 @@ mod tests {
             Err(err) => panic!("{:?}", err)
         };
     }
+    */
 }
 
 

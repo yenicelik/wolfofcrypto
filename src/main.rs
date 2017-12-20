@@ -1,3 +1,5 @@
+#![feature(plugin)]
+#![plugin(rocket_codegen)]
 #![recursion_limit="4096"]
 #[macro_use]
 extern crate serde_json;
@@ -21,8 +23,10 @@ extern crate fern;
 #[macro_use]
 extern crate failure;
 
+extern crate rocket;
+extern crate rocket_contrib;
+
 mod db_worker;
-mod coinigy_hist;
 mod coinigy_live;
 mod types;
 mod server;
@@ -30,5 +34,5 @@ mod database;
 mod historical;
 
 fn main() {
-    server::serve();
+    server::server::serve();
 }

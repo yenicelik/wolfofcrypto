@@ -1,5 +1,5 @@
 use diesel::prelude::*;
-use diesel::sqlite::SqliteConnection;
+//use diesel::sqlite::SqliteConnection;
 use database::types;
 
 use failure::Error;
@@ -12,19 +12,13 @@ use futures::{Future, Stream};
 use hyper::Client;
 use tokio_core::reactor::Core;
 
-use diesel;
-use std::i32;
-
+//use diesel;
 use diesel::associations::HasTable;
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use database;
+use database::db;
 
-const BTC_TUPLE: (
-        database::types::__diesel_infer_schema::infer_bitcoin::bitcoin::table,
-        database::types::__diesel_infer_schema::infer_bitcoin::bitcoin::columns::time
-    ) = (types::bitcoin::table, types::bitcoin::time);
 
 const RATE_LIMIT_CENTISECONDS: u64 = 10;
 // https://graphs.coinmarketcap.com/currencies/bitcoin/1367131641000/1367218041000/
@@ -34,73 +28,6 @@ const ETH_BASE: (&str, i64, i64) = ("ethereum", 1438958970000, 1439500431288 - 1
 // https://graphs.coinmarketcap.com/currencies/litecoin/1367174842000/1367261242000/
 const LTC_BASE: (&str, i64, i64) = ("litecoin", 1367174842000, 1367261242000 - 1367174842000);
 
-/*
-pub trait TickerBTCBTCBTC {
-    type Table;
-}
-
-struct Btc;
-
-impl TickerBTCBTCBTC for Btc {
-    type Table = types::bitc;
-}
-*/
-
-/*
-pub fn get_most_recent_entry<T>(conn: &SqliteConnection) -> () where T: TickerBTCBTCBTC {
-    T::Table;
-}
-*/
-
-/*
-let res = T::Table
-        .order(types::bitcoin::time.desc())
-        .limit(1)
-        .load::<types::BTCRecord>(&*conn);
-    match res {
-        Ok(x) => {
-            if x.len() > 0 {
-                Ok(x.get(0).unwrap().time)
-            } else {
-                Ok(0)
-            }
-        }
-        Err(err) => Err(format_err!("Something went wrong retrieving the most recently inserted \
-        bitcoin record! {:?}", err))curl https://sh.rustup.rs -sSf | sh
-
-    }
-*/
-
-pub struct BtcShit {
-    table: types::bitcoin::table;
-    time: types::bitcoin::time;
-}
-
-pub fn get_most_recent_entries(conn: &SqliteConnection,) -> Result<i32, Error> {
-
-    let res = T::table()
-        .order(T::time.desc())
-        .limit(1)
-        .load::<T>(&*conn);
-    match res {
-        Ok(x) => {
-            if x.len() > 0 {
-                Ok(x.get(0).unwrap().time)
-            } else {
-                Ok(0)
-            }
-        }
-        Err(err) => Err(format_err!("Something went wrong retrieving the most recently inserted \
-        bitcoin record! {:?}", err))
-    }
-}
-
-pub fn establish_connection() -> Result<SqliteConnection, Error> {
-    match SqliteConnection::establish("/Users/davidal/documents/wolfofcrypto/src/database/sqlite_database.db") {
-        Ok(x) => Ok(x),
-        Err(err) => Err(format_err!("data was not found within the struct! {:?}", err))
-    }
-}
 
 pub fn parse_values(value: Value) -> Result<(Vec<types::IntRecord>, Vec<types::FloatRecord>,
                                              Vec<types::FloatRecord>, Vec<types::FloatRecord>), Error> {
@@ -130,141 +57,6 @@ pub fn parse_values(value: Value) -> Result<(Vec<types::IntRecord>, Vec<types::F
 
 
     Ok((market_cap, price_btc, price_usd, vol_usd))
-}
-
-pub fn get_most_recent_btc_entry(conn: &SqliteConnection) -> Result<i32, Error> {
-    //let a: () = types::bitcoin::table;
-    //let a: () = types::bitcoin::time;
-    let res = types::bitcoin::table
-        .order(types::bitcoin::time.desc())
-        .limit(1)
-        .load::<types::BTCRecord>(&*conn);
-    match res {
-        Ok(x) => {
-            if x.len() > 0 {
-                Ok(x.get(0).unwrap().time)
-            } else {
-                Ok(0)
-            }
-        }
-        Err(err) => Err(format_err!("Something went wrong retrieving the most recently inserted \
-        bitcoin record! {:?}", err))
-    }
-}
-
-pub fn get_most_recent_eth_entry(conn: &SqliteConnection) -> Result<i32, Error> {
-    let res = types::ethereum::table
-        .order(types::ethereum::time.desc())
-        .limit(1)
-        .load::<types::ETHRecord>(&*conn);
-    match res {
-        Ok(x) => {
-            if x.len() > 0 {
-                Ok(x.get(0).unwrap().time)
-            } else {
-                Ok(0)
-            }
-        }
-        Err(err) => Err(format_err!("Something went wrong retrieving the most recently inserted \
-        ethereum record! {:?}", err))
-    }
-}
-
-pub fn get_most_recent_ltc_entry(conn: &SqliteConnection) -> Result<i32, Error> {
-    let res = types::litecoin::table
-        .order(types::litecoin::time.desc())
-        .limit(1)
-        .load::<types::LTCRecord>(&*conn);
-    match res {
-        Ok(x) => {
-            if x.len() > 0 {
-                Ok(x.get(0).unwrap().time)
-            } else {
-                Ok(0)
-            }
-        }
-        Err(err) => Err(format_err!("Something went wrong retrieving the most recently inserted \
-        litecoin record! {:?}", err))
-    }
-}
-
-
-pub fn insert_into_db(conn: &SqliteConnection, ins: (Vec<types::IntRecord>,
-                                                     Vec<types::FloatRecord>,
-                                                     Vec<types::FloatRecord>,
-                                                     Vec<types::FloatRecord>), currency: &str) ->
-                      Result<usize, Error> {
-    let mut out: usize = 0;
-
-    for i in 0..(ins.1.len()) {
-        // Check if there's anything funky with the vector and tuples
-        if ins.0.get(i).unwrap().unixtime != ins.1.get(i).unwrap().unixtime ||
-            ins.1.get(i).unwrap().unixtime != ins.2.get(i).unwrap().unixtime ||
-            ins.2.get(i).unwrap().unixtime != ins.3.get(i).unwrap().unixtime {
-            return Err(format_err!("Something is funky with the structs and arrays: {:?}", ins));
-        }
-
-        // TODO: This is really dirty and should probably be changed into an enum
-        if currency == "bitcoin" {
-            let to_be_inserted = types::BTCRecord {
-                time: (ins.0.get(i).unwrap().unixtime / 1000) as i32,
-                market_cap: ins.0.get(i).unwrap().intfield as f32,
-                price_btc: ins.1.get(i).unwrap().floatfield,
-                price_usd: ins.2.get(i).unwrap().floatfield,
-                vol_usd: ins.3.get(i).unwrap().floatfield
-            };
-
-            out = match diesel::insert_into(types::bitcoin::table)
-                .values(&to_be_inserted)
-                .execute(&*conn) {
-                Ok(x) => x,
-                Err(err) => {
-                    warn!("Something went wrong inserting btc! {:?}", err);
-                    continue;
-                }
-            };
-        } else if currency == "ethereum" {
-            let to_be_inserted = types::ETHRecord {
-                time: (ins.0.get(i).unwrap().unixtime / 1000) as i32,
-                market_cap: ins.0.get(i).unwrap().intfield as f32,
-                price_btc: ins.1.get(i).unwrap().floatfield,
-                price_usd: ins.2.get(i).unwrap().floatfield,
-                vol_usd: ins.3.get(i).unwrap().floatfield
-            };
-
-            out = match diesel::insert_into(types::ethereum::table)
-                .values(&to_be_inserted)
-                .execute(&*conn) {
-                Ok(x) => x,
-                Err(err) => {
-                    warn!("Something went wrong inserting eth! {:?}", err);
-                    continue;
-                }
-            };
-        } else if currency == "litecoin" {
-            let to_be_inserted = types::LTCRecord {
-                time: (ins.0.get(i).unwrap().unixtime / 1000) as i32,
-                market_cap: ins.0.get(i).unwrap().intfield as f32,
-                price_btc: ins.1.get(i).unwrap().floatfield,
-                price_usd: ins.2.get(i).unwrap().floatfield,
-                vol_usd: ins.3.get(i).unwrap().floatfield
-            };
-
-            out = match diesel::insert_into(types::litecoin::table)
-                .values(&to_be_inserted)
-                .execute(&*conn) {
-                Ok(x) => x,
-                Err(err) => {
-                    warn!("Something went wrong inserting ltc! {:?}", err);
-                    continue
-                }
-            };
-        } else {
-            return Err(format_err!("Something went wrong! Name is not a table! {}", currency));
-        }
-    }
-
-    Ok(out)
 }
 
 pub fn send_request(currency: &str, start: i64, offset: i64) -> Result<Value, Error> {
@@ -305,8 +97,39 @@ pub fn send_request(currency: &str, start: i64, offset: i64) -> Result<Value, Er
 
 
 // TODO: do this up until now
-// TODO: if stuck, just skip one offset
+// TODO: if stuck n times, skip n offsets
 // TODO: come back to skipped offsets (see difference between two pairwise dates)
+
+//TODO: put this into an util file
+pub fn str_to_currency_selection(currencies: String) -> types::CurrencySelectionTuple{
+    /** The input should be comma-separated values of the names of coinmarketcap **/
+    let mut currencies: Vec<&str> = currencies.split(", ").collect();
+    println!("The currency string {:?}", currencies);
+
+    // We want to make damn sure there's not error, so we panic if the pair is not existent
+    let mut out: types::CurrencySelectionTuple = (false, false, false);
+
+    // Test if this actually does re-assignment
+    for currency in currencies {
+        match currency {
+            "bitcoin" => {
+                out.0 = true
+            },
+            "ethereum" => {
+                out.1 = true;
+            },
+            "litecoin" => {
+                out.2 = true;
+            },
+            _ => {
+                panic!("No valid currency pair is given. Because this relies on string \
+                comparison, we panicked!");
+            }
+        };
+    }
+
+    return out;
+}
 
 pub fn get_website_data() {
     //Skipping functionality
@@ -314,7 +137,7 @@ pub fn get_website_data() {
 
     let currencies = vec![BTC_BASE, ETH_BASE, LTC_BASE];
 
-    let conn = match establish_connection() {
+    let conn = match db::establish_connection() {
         Ok(x) => x,
         Err(err) => panic!("Error establishing database connection! {:?}", err)
     };
@@ -327,31 +150,15 @@ pub fn get_website_data() {
 
         println!("{:?}", currency);
 
+        let selection_tuple: types::CurrencySelectionTuple = str_to_currency_selection(currency.0
+            .to_owned());
+
         loop {
-            match currency.0 {
-                "bitcoin" => {
-                    recent_time = match get_most_recent_btc_entry(&conn) {
-                        Ok(x) => (x as i64) * 1000,
-                        Err(err) => panic!("Something went wrong while getting the most recent \
-                        btc entry: {:?}", err)
-                    };
-                }
-                "ethereum" => {
-                    recent_time = match get_most_recent_eth_entry(&conn) {
-                        Ok(x) => (x as i64) * 1000,
-                        Err(err) => panic!("Something went wrong while getting the most recent \
-                        eth entry: {:?}", err)
-                    };
-                }
-                "litecoin" => {
-                    recent_time = match get_most_recent_ltc_entry(&conn) {
-                        Ok(x) => (x as i64) * 1000,
-                        Err(err) => panic!("Something went wrong while getting the most recent \
-                        ltc entry: {:?}", err)
-                    };
-                }
-                _ => panic!("Wrong currency pair!")
-            }
+            recent_time = match db::get_most_recent_entry(&conn, selection_tuple) {
+                Ok(x) => (x as i64) * 1000,
+                Err(err) => panic!("Something went wrong while getting the most recent entry \
+                time: {:?}", err)
+            };
 
             //If all data is collected, skip to next coin
             let start = SystemTime::now();
@@ -387,9 +194,7 @@ pub fn get_website_data() {
 
             println!("Skip counter: {:?}", skip_counter);
 
-            panic!("Skipping once more!");
-
-            let updated_vals = match insert_into_db(&conn, ins, currency.0) {
+            let updated_vals = match db::insert_into_db(&conn, ins, currency.0) {
                 Ok(x) => x,
                 Err(err) => {
                     //
@@ -410,15 +215,7 @@ pub fn get_website_data() {
 #[cfg(test)]
 mod tests_populate_db {
     /** Does not require a request_body **/
-    //Building blocks
-    #[test]
-    fn test_create_request() {
-        use super::establish_connection;
-        match establish_connection() {
-            Ok(_) => {}
-            Err(err) => panic!(err)
-        };
-    }
+
 
     #[test]
     fn test_send_request() {
@@ -455,13 +252,14 @@ mod tests_populate_db {
         get_website_data();
     }
 
+
     /*
     #[test]
     fn test_insert_into_db() {
         use super::parse_values;
         use super::send_request;
         use super::BTC_BASE;
-        use super::insert_into_db;
+        use super::db::insert_into_db;
         use serde_json::Value;
         use super::establish_connection;
 
@@ -484,13 +282,6 @@ mod tests_populate_db {
     }
     */
 
-    /*
-    #[test]
-    fn test_get_website_data() {
-        use super::get_website_data;
-        get_website_data();
-    }
-    */
 }
 
 //TODO: implement method to repair corrupt database (download missing entries)
