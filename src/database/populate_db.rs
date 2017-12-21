@@ -12,9 +12,6 @@ use futures::{Future, Stream};
 use hyper::Client;
 use tokio_core::reactor::Core;
 
-//use diesel;
-use diesel::associations::HasTable;
-
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use database::db;

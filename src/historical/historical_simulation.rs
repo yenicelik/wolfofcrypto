@@ -2,10 +2,6 @@ use failure::Error;
 
 use super::super::database::types;
 use super::super::database::db;
-use super::super::database::db::{
-    establish_connection,
-    get_entries_between};
-
 
 pub fn get_all_entries_between(
     start_unixtime: i32,

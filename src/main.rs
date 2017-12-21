@@ -23,6 +23,10 @@ extern crate fern;
 #[macro_use]
 extern crate failure;
 
+extern crate r2d2_diesel;
+extern crate r2d2;
+
+
 extern crate rocket;
 extern crate rocket_contrib;
 

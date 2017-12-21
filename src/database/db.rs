@@ -1,19 +1,53 @@
 use diesel::prelude::*;
-use diesel::sqlite::SqliteConnection;
 use database::types;
 
 use failure::Error;
-use serde_json::Value;
-use hyper_tls::HttpsConnector;
-use futures::{Future, Stream};
-use hyper::Client;
-use tokio_core::reactor::Core;
+use futures::{Stream};
 use diesel;
 use std::i32;
-use diesel::associations::HasTable;
-use std::time::{SystemTime, UNIX_EPOCH};
-use database;
 
+use std::ops::Deref;
+
+use diesel::sqlite::SqliteConnection;
+use r2d2_diesel::ConnectionManager;
+
+use r2d2;
+
+use rocket::request::{self, FromRequest};
+use rocket::{Request, State, Outcome};
+use rocket::http::Status;
+
+type Pool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
+static DATABASE_URL: &'static str = env!("DATABASE_URL");
+pub struct DbConn(pub r2d2::PooledConnection<ConnectionManager<SqliteConnection>>);
+
+impl<'a, 'r> FromRequest<'a, 'r> for DbConn {
+    type Error = ();
+
+    fn from_request(request: &'a Request<'r>) -> request::Outcome<DbConn, ()> {
+        let pool = request.guard::<State<Pool>>()?;
+        match pool.get() {
+            Ok(conn) => Outcome::Success(DbConn(conn)),
+            Err(_) => Outcome::Failure((Status::ServiceUnavailable, ()))
+        }
+    }
+}
+// For the convenience of using an &DbConn as an &SqliteConnection.
+impl Deref for DbConn {
+    type Target = SqliteConnection;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+pub fn init_pool() -> Pool {
+    let config = r2d2::Config::default();
+    let manager = ConnectionManager::<SqliteConnection>::new(DATABASE_URL);
+    r2d2::Pool::new(config, manager).expect("db pool")
+}
+
+/** Start of actual db actions **/
 //Define the following struct to cover all options
 pub fn establish_connection() -> Result<SqliteConnection, Error> {
     match SqliteConnection::establish("/Users/davidal/documents/wolfofcrypto/src/database/sqlite_database.db") {
