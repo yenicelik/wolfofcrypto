@@ -4,36 +4,27 @@ import time
 import pandas as pd
 import numpy as np
 from pandas import DataFrame
-import matplotlib
 import datetime
+import requests
+import time
 
+import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
+# CONSTANTS
 DISPLAY_RATE = 0.5
+COLUMN_NAMES = ["time", "market_cap", "price_btc", "price_usd", "vol_usd"]
 
-def establish_connection():
-    conn = sqlite3.connect('/Users/davidal/documents/wolfofcrypto/src/database/sqlite_database.db')
-    return conn, conn.cursor()
-
-
-def get_all_records(cursor, currency):
-    # must be one of these # turn this into an if or so
-    assert (currency == "bitcoin" or currency == "ethereum" or currency == "litecoin")
-
-    query = "SELECT * FROM " + currency
-    res = cursor.execute(query)
-
-    out = DataFrame(res.fetchall())
-    out.columns = ["time", "market_cap", "price_btc", "price_usd", "vol_usd"]
-
-    return out
-
-def select_last_four_days(df):
-    max_time = np.max(df.time)
-    cropped_df = df[df.time > max_time - 86400] # Should be times 4
-
-    return cropped_df
+def get_last_24h_data():
+    days = 4
+    data = {
+        'start_unixtime': round(time.time()),
+        'end_unixtime': round(time.time()) * (24 * 60 * 60) * days,
+        'currency': None
+    }
+    r = requests.post("http://bugs.python.org", data=data)
+    print(r.json())
 
 def plot_single_frame(ax1, data):
     dates=[datetime.datetime.fromtimestamp(ts) for ts in data.time]

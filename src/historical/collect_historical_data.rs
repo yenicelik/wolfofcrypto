@@ -1,20 +1,11 @@
-use database::types;
-
-use failure::Error;
-use std::{thread, time};
+use types;
 use serde_json;
-use serde_json::Value;
-use hyper_tls::HttpsConnector;
-
-use futures::{Future, Stream};
-use hyper::Client;
-use tokio_core::reactor::Core;
-
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use database::db;
+use utils;
+use coinmarketcap::coinmarketcap;
 
-const RATE_LIMIT_CENTISECONDS: u64 = 10;
 // https://graphs.coinmarketcap.com/currencies/bitcoin/1367131641000/1367218041000/
 const BTC_BASE: (&str, i64, i64) = ("bitcoin", 1367131641000, 1367218041000 - 1367131641000);
 // https://graphs.coinmarketcap.com/currencies/ethereum/1438958970000/1439500431288/
@@ -46,7 +37,8 @@ pub fn get_website_data() {
 
         println!("{:?}", currency);
 
-        let selection_tuple: types::CurrencySelectionTuple = str_to_currency_selection(currency.0
+        let selection_tuple: types::CurrencySelectionTuple = utils::str_to_currency_selection
+            (currency.0
             .to_owned());
 
         loop {
@@ -70,7 +62,7 @@ pub fn get_website_data() {
                 recent_time = index;
             }
 
-            let res: serde_json::Value = match send_request(table_name, recent_time + skip_counter * offset, offset) {
+            let res: serde_json::Value = match coinmarketcap::send_request(table_name, recent_time + skip_counter * offset, offset) {
                 Ok(x) => x,
                 Err(err) => {
                     println!("Something went wrong when sending the request!: {:?}", err);
@@ -79,7 +71,7 @@ pub fn get_website_data() {
                 }
             };
 
-            let ins = match parse_values(res) {
+            let ins = match utils::parse_values(res) {
                 Ok(x) => x,
                 Err(err) => {
                     println!("Something wen wrong parsing the value! {:?}", err);

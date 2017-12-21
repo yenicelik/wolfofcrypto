@@ -10,16 +10,5 @@ pub struct Response<T> {
 pub struct PostHistoricalData {
     pub start_unixtime: i32,
     pub end_unixtime: i32,
-    pub currency: Option<String>
+    pub currency: Option<String> //If none is provided, get all currency pairs
 }
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Record {
-    pub currency: String,
-    pub time: i32,
-    pub market_cap: f32,
-    pub price_btc: f32,
-    pub price_usd: f32,
-    pub vol_usd: f32
-}
-

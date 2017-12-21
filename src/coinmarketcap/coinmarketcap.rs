@@ -1,4 +1,13 @@
+use std::{thread, time};
+use tokio_core::reactor::Core;
+use hyper::Client;
+use hyper_tls::HttpsConnector;
+use serde_json;
+use serde_json::Value;
+use failure::Error;
+use futures::{Future, Stream};
 
+const RATE_LIMIT_CENTISECONDS: u64 = 10;
 
 pub fn send_request(currency: &str, start: i64, offset: i64) -> Result<Value, Error> {
     let wait_time = time::Duration::from_millis(RATE_LIMIT_CENTISECONDS * 100); //1sec

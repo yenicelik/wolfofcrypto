@@ -30,11 +30,16 @@ extern crate r2d2;
 extern crate rocket;
 extern crate rocket_contrib;
 
-mod server;
+//Packages
+mod coinigy;
+mod coinmarketcap;
 mod database;
 mod historical;
-mod coinmarketcap;
-mod coinigy;
+mod server;
+
+// Files
+mod utils;
+mod types;
 
 fn main() {
     server::server::serve();

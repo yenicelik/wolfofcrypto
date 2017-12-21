@@ -2,16 +2,16 @@ use rocket;
 
 use historical::historical_simulation;
 
-use server::types;
 use database;
 
 use rocket_contrib::Json;
 
-use database::db;
+use types;
+
+use server;
 
 static ERR_STATUS: i32 = 111;
 static OK_STATUS: i32 = 999;
-
 
 #[get("/")]
 fn test_landing_page() -> &'static str {
@@ -23,16 +23,16 @@ fn test_landing_page() -> &'static str {
 #[post("/historical/get-data-from-to", format = "application/json", data =
 "<post_historical_json>")]
 fn endpoint_get_historical_data(
-    post_historical_json: Json<types::PostHistoricalData>,
-    conn: db::DbConn) -> Json<types::Response<Vec<database::types::Record>>> {
+    post_historical_json: Json<server::types::PostHistoricalData>,
+    conn: database::db::DbConn) -> Json<server::types::Response<Vec<types::Record>>> {
     trace!("Accessing get-historical-data-from-to");
     debug!("{:?}", post_historical_json);
 
     // Parse query json
-    let post_historical: types::PostHistoricalData = post_historical_json.into_inner();
+    let post_historical: server::types::PostHistoricalData = post_historical_json.into_inner();
 
     // Prepare output format
-    let out: types::Response<Vec<database::types::Record>>;
+    let out: server::types::Response<Vec<types::Record>>;
 
     //TODO: how to deal with connection objects? spawn a new one? singleton somehow?
     let response = historical_simulation::get_all_entries_between(
@@ -42,14 +42,14 @@ fn endpoint_get_historical_data(
 
     match response {
         Ok(x) => {
-            out = types::Response {
+            out = server::types::Response {
                 status: OK_STATUS,
                 result: x,
                 error: "".to_owned()
             }
         },
         Err(err) => {
-            out = types::Response {
+            out = server::types::Response {
                 status: ERR_STATUS,
                 result: vec![],
                 error: format!("Error: {:?}", err),
@@ -63,7 +63,7 @@ fn endpoint_get_historical_data(
 pub fn serve() {
 
     rocket::ignite()
-        .manage(db::init_pool())
+        .manage(database::db::init_pool())
         .mount("/", routes![test_landing_page, endpoint_get_historical_data]).launch();
 
     // Ping and download data every few minutes

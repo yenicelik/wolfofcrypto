@@ -1,5 +1,6 @@
 use diesel::prelude::*;
-use database::types;
+use database;
+use types;
 
 use failure::Error;
 use diesel;
@@ -21,7 +22,7 @@ Type definitions and static variables for general re-use
 */
 type Pool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
 
-static DATABASE_URL: &'static str = env!("DATABASE_URL");
+static DATABASE_URL: &'static str = "/Users/davidal/documents/wolfofcrypto/src/database/sqlite_database.db";
 
 pub struct DbConn(pub r2d2::PooledConnection<ConnectionManager<SqliteConnection>>);
 
@@ -66,10 +67,11 @@ pub fn establish_connection() -> Result<SqliteConnection, Error> {
 pub fn get_entries_between(conn: &SqliteConnection, currencies: types::CurrencySelectionTuple,
                            start_time: i32, end_time: i32) -> Result<Vec<types::Record>, Error> {
     //TODO: iterate over all booleans in currencies and create appropriate filter clauses
+    println!("Currency input: {:?}", currencies);
     let res = types::currency_table::table
-        .filter(types::currency_table::time.ge(start_time))
-        .filter(types::currency_table::time.lt(end_time))
-        .order(types::currency_table::time.desc())
+        .filter( types::currency_table::time.ge(start_time) )
+        .filter( types::currency_table::time.lt(end_time) )
+        .order( types::currency_table::time.desc() )
         .load::<types::Record>(&*conn);
 
     match res {
@@ -83,10 +85,10 @@ pub fn get_entries_between(conn: &SqliteConnection, currencies: types::CurrencyS
 
 pub fn get_most_recent_entry(conn: &SqliteConnection, currencies: types::CurrencySelectionTuple) ->
                                                                                            Result<i32, Error> {
-
+    println!("Currency input: {:?}", currencies);
     //TODO: iterate over all booleans in currencies and create appropriate filter clauses
     let res = types::currency_table::table
-        .order(types::currency_table::time.desc())
+        .order( types::currency_table::time.desc() )
         .limit(1)
         .load::<types::Record>(&*conn);
 
@@ -103,7 +105,7 @@ pub fn get_most_recent_entry(conn: &SqliteConnection, currencies: types::Currenc
     }
 }
 
-pub fn insert_into_db(conn: &SqliteConnection, ins: types::InsertionType, currency: &str) ->
+pub fn insert_into_db(conn: &SqliteConnection, ins: database::types::InsertionType, currency: &str) ->
                       Result<usize, Error> {
     let mut out: usize = 0;
 
@@ -124,7 +126,7 @@ pub fn insert_into_db(conn: &SqliteConnection, ins: types::InsertionType, curren
             vol_usd: ins.3.get(i).unwrap().floatfield
         };
 
-        out = match diesel::insert_into(types::currency_table::table)
+        out = match diesel::insert_into( types::currency_table::table )
             .values(&to_be_inserted)
             .execute(&*conn) {
                 Ok(x) => x,
@@ -153,3 +155,78 @@ mod db_tests {
     }
 }
 
+
+/*
+#[cfg(test)]
+mod tests_populate_db {
+    /** Does not require a request_body **/
+
+
+    #[test]
+    fn test_send_request() {
+        use super::send_request;
+        use super::BTC_BASE;
+        match send_request(BTC_BASE.0, BTC_BASE.1, BTC_BASE.2) {
+            Ok(_) => {}
+            Err(err) => panic!(err)
+        }
+    }
+
+    #[test]
+    fn test_parse_values() {
+        use super::parse_values;
+        use super::send_request;
+        use super::BTC_BASE;
+        use serde_json::Value;
+
+        let val: Value = match send_request(BTC_BASE.0, BTC_BASE.1, BTC_BASE.2) {
+            Ok(x) => x,
+            Err(err) => panic!(err)
+        };
+
+        match parse_values(val) {
+            Ok(x) => x,
+            Err(err) => panic!(err)
+        };
+    }
+
+    #[test]
+    fn get_web_data() {
+        use super::get_website_data;
+
+        get_website_data();
+    }
+
+
+    /*
+    #[test]
+    fn test_insert_into_db() {
+        use super::parse_values;
+        use super::send_request;
+        use super::BTC_BASE;
+        use super::db::insert_into_db;
+        use serde_json::Value;
+        use super::establish_connection;
+
+        let val: Value = match send_request(BTC_BASE.0, BTC_BASE.1, BTC_BASE.2) {
+            Ok(x) => x,
+            Err(err) => panic!(err)
+        };
+
+        let tmp = match parse_values(val) {
+            Ok(x) => x,
+            Err(err) => panic!(err)
+        };
+
+        let conn = match establish_connection() {
+            Ok(x) => x,
+            Err(err) => panic!(err)
+        };
+
+        insert_into_db(conn, tmp, "bitcoin");
+    }
+    */
+
+}
+
+*/
