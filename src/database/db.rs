@@ -2,23 +2,27 @@ use diesel::prelude::*;
 use database::types;
 
 use failure::Error;
-use futures::{Stream};
 use diesel;
 use std::i32;
 
 use std::ops::Deref;
 
 use diesel::sqlite::SqliteConnection;
-use r2d2_diesel::ConnectionManager;
-
-use r2d2;
 
 use rocket::request::{self, FromRequest};
 use rocket::{Request, State, Outcome};
 use rocket::http::Status;
 
+use r2d2;
+use r2d2_diesel::ConnectionManager;
+
+/**
+Type definitions and static variables for general re-use
+*/
 type Pool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
+
 static DATABASE_URL: &'static str = env!("DATABASE_URL");
+
 pub struct DbConn(pub r2d2::PooledConnection<ConnectionManager<SqliteConnection>>);
 
 impl<'a, 'r> FromRequest<'a, 'r> for DbConn {
@@ -32,6 +36,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for DbConn {
         }
     }
 }
+
 // For the convenience of using an &DbConn as an &SqliteConnection.
 impl Deref for DbConn {
     type Target = SqliteConnection;
@@ -41,10 +46,12 @@ impl Deref for DbConn {
     }
 }
 
+/// Initializes a database pool.
 pub fn init_pool() -> Pool {
-    let config = r2d2::Config::default();
     let manager = ConnectionManager::<SqliteConnection>::new(DATABASE_URL);
-    r2d2::Pool::new(config, manager).expect("db pool")
+    let pool = r2d2::Pool::builder()
+        .build(manager).expect("db pool");
+    pool
 }
 
 /** Start of actual db actions **/

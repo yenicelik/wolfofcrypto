@@ -30,12 +30,11 @@ extern crate r2d2;
 extern crate rocket;
 extern crate rocket_contrib;
 
-mod db_worker;
-mod coinigy_live;
-mod types;
 mod server;
 mod database;
 mod historical;
+mod coinmarketcap;
+mod coinigy;
 
 fn main() {
     server::server::serve();

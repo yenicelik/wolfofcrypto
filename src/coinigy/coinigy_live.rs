@@ -8,7 +8,7 @@ use hyper_tls::HttpsConnector;
 
 use serde_json;
 use serde_json::{Value};
-use types;
+use coinigy::types;
 
 use std::{thread, time};
 

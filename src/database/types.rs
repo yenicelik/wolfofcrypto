@@ -14,18 +14,6 @@ pub struct Record {
 
 //TODO: Do duplicate struct definitions as long as there is a way to add multiple tables
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct FloatRecord {
-    pub unixtime: i64,
-    pub floatfield: f32,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct IntRecord {
-    pub unixtime: i64,
-    pub intfield: i64,
-}
-
 pub type InsertionType = (
     Vec<IntRecord>
     , Vec<FloatRecord>
@@ -33,4 +21,3 @@ pub type InsertionType = (
     , Vec<FloatRecord>
 );
 
-pub type CurrencySelectionTuple = (bool, bool, bool); //BTC, ETH, LTC
