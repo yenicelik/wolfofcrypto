@@ -99,3 +99,14 @@ pub fn get_website_data() {
 
     println!("Oleee, done for today!");
 }
+
+
+#[cfg(test)]
+mod test_get_all_data {
+    #[test]
+    fn test_get_all_data() {
+        use super::get_website_data;
+        get_website_data();
+    }
+
+}

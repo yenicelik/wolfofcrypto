@@ -41,6 +41,34 @@ mod server;
 mod utils;
 mod types;
 
+// Functionality
+use std::time::Duration;
+use std::thread;
+use historical::collect_historical_data;
+
+static SERVE_ONLY: bool = true;
+
 fn main() {
-    server::server::serve();
+
+    if SERVE_ONLY {
+        server::server::serve();
+    } else {
+
+        let server = thread::Builder::new().name("Server".to_string());
+        server.spawn(move || {
+            server::server::serve();
+        });
+
+        /*
+        let dataCollector = thread::Builder::new().name("Data Collector".to_string());
+        dataCollector.spawn(move || {
+            loop {
+                println!("Looping through!");
+                thread::sleep(Duration::from_millis(5000));
+                collect_historical_data::get_website_data();
+            }
+        });
+        */
+    }
+
 }

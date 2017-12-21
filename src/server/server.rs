@@ -62,6 +62,8 @@ fn endpoint_get_historical_data(
 
 pub fn serve() {
 
+
+
     rocket::ignite()
         .manage(database::db::init_pool())
         .mount("/", routes![test_landing_page, endpoint_get_historical_data]).launch();

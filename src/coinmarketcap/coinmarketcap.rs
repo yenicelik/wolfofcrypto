@@ -7,7 +7,7 @@ use serde_json::Value;
 use failure::Error;
 use futures::{Future, Stream};
 
-const RATE_LIMIT_CENTISECONDS: u64 = 10;
+const RATE_LIMIT_CENTISECONDS: u64 = 20;
 
 pub fn send_request(currency: &str, start: i64, offset: i64) -> Result<Value, Error> {
     let wait_time = time::Duration::from_millis(RATE_LIMIT_CENTISECONDS * 100); //1sec
@@ -34,13 +34,18 @@ pub fn send_request(currency: &str, start: i64, offset: i64) -> Result<Value, Er
         res.body().concat2().map(|body| {
             let val: Vec<u8> = body.to_vec();
             let json_string: String = String::from_utf8(val).unwrap();
-            let json: Value = serde_json::from_str(&json_string.to_string()).unwrap();
-            json
+            match serde_json::from_str(&json_string.to_string()) {
+                Ok(json) => Ok(json),
+                Err(err) => {
+                    warn!("Something is going wrong! {:?}", err);
+                    Err(format_err!("Something went wrong with unwrapping the  response from \
+                    coinmarketcap {:?}", err))}
+            }
         })
     });
 
     match core.run(work) {
-        Ok(x) => Ok(x),
+        Ok(x) => x,
         Err(err) => Err(format_err!("Get failed with message {:?}", err))
     }
 }
